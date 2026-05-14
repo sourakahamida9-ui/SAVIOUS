@@ -1,4 +1,4 @@
-import type { Chat, Message } from "@/types";
+import type { Chat, Message, Provider } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 
 const CHATS_KEY = "nexus_chats";
@@ -88,19 +88,47 @@ export const storage = {
     if (typeof window === "undefined") return "";
     return localStorage.getItem("nexus_api_key") || "";
   },
-
   setApiKey(key: string) {
     localStorage.setItem("nexus_api_key", key);
   },
 
   getModel(): string {
     if (typeof window === "undefined") return "claude-sonnet-4-20250514";
-    return (
-      localStorage.getItem("nexus_model") || "claude-sonnet-4-20250514"
-    );
+    return localStorage.getItem("nexus_model") || "claude-sonnet-4-20250514";
   },
-
   setModel(model: string) {
     localStorage.setItem("nexus_model", model);
+  },
+
+  getProvider(): Provider {
+    if (typeof window === "undefined") return "claude";
+    return (localStorage.getItem("nexus_provider") as Provider) || "claude";
+  },
+  setProvider(provider: Provider) {
+    localStorage.setItem("nexus_provider", provider);
+  },
+
+  getOllamaEndpoint(): string {
+    if (typeof window === "undefined") return "http://localhost:11434";
+    return localStorage.getItem("nexus_ollama_endpoint") || "http://localhost:11434";
+  },
+  setOllamaEndpoint(endpoint: string) {
+    localStorage.setItem("nexus_ollama_endpoint", endpoint);
+  },
+
+  getOpenAIEndpoint(): string {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("nexus_openai_endpoint") || "";
+  },
+  setOpenAIEndpoint(endpoint: string) {
+    localStorage.setItem("nexus_openai_endpoint", endpoint);
+  },
+
+  getOpenAIApiKey(): string {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("nexus_openai_api_key") || "";
+  },
+  setOpenAIApiKey(key: string) {
+    localStorage.setItem("nexus_openai_api_key", key);
   },
 };

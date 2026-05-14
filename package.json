@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.77",
+    "@ai-sdk/openai-compatible": "^2.0.47",
     "@ai-sdk/react": "^3.0.184",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
     "@types/uuid": "^10.0.0",
     "ai": "^6.0.182",
+    "highlight.js": "^11.11.1",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "react": "19.2.4",

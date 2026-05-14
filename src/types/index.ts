@@ -13,7 +13,31 @@ export interface Chat {
   user_id: string;
 }
 
+export type Provider = "claude" | "ollama" | "openai-compatible";
+
+export interface ProviderConfig {
+  id: Provider;
+  name: string;
+  description: string;
+  requiresApiKey: boolean;
+  defaultEndpoint?: string;
+  models: ModelOption[];
+  color: string;
+  badge: string;
+}
+
+export interface ModelOption {
+  id: string;
+  name: string;
+  desc: string;
+  provider: Provider;
+}
+
 export interface UserSettings {
   api_key: string;
   model: string;
+  provider: Provider;
+  ollama_endpoint: string;
+  openai_endpoint: string;
+  openai_api_key: string;
 }
