@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NexusAI — Intelligent AI Platform
+
+A modern AI-powered workspace built with Next.js 16, featuring Claude AI integration, an embedded browser, and persistent chat history.
+
+## Features
+
+- **AI Chat with Claude** — Streaming conversations powered by Claude (Sonnet 4, Opus 4, Haiku 3.5)
+- **Bring Your Own Key (BYOK)** — Use your own Anthropic API key, stored locally in your browser
+- **Embedded Browser** — Browse the web directly within the platform
+- **Chat History** — All conversations are saved locally with localStorage
+- **Dark Theme** — Beautiful dark UI with indigo accent colors
+- **Responsive Design** — Collapsible sidebar, split-pane layout
+
+## Tech Stack
+
+- **Next.js 16** (App Router, Turbopack)
+- **React 19** with TypeScript
+- **Vercel AI SDK v6** + `@ai-sdk/anthropic`
+- **Tailwind CSS v4**
+- **Supabase** (ready for authentication & database — optional)
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/sourakahamida9-ui/nexus-ai-platform.git
+cd nexus-ai-platform
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) and you're ready to go.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Add your Claude API key
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Navigate to **Settings** in the app and paste your Anthropic API key. Get one at [console.anthropic.com](https://console.anthropic.com/settings/keys).
 
-## Learn More
+## Optional: Supabase Integration
 
-To learn more about Next.js, take a look at the following resources:
+For persistent authentication and chat history across devices:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Create a project at [supabase.com](https://supabase.com)
+2. Run the SQL schema from `supabase-schema.sql` in the SQL Editor
+3. Copy your project URL and anon key
+4. Create a `.env.local` file:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deploy to Vercel with one click:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/sourakahamida9-ui/nexus-ai-platform)
+
+## License
+
+MIT
