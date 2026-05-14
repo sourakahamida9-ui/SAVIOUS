@@ -11,11 +11,11 @@ import {
   PanelLeftOpen,
   Sparkles,
   Search,
-  Server,
-  Brain,
-  Blocks,
+  Code2,
+  Terminal,
 } from "lucide-react";
-import type { Chat, Provider } from "@/types";
+import type { Chat, Provider, PanelId } from "@/types";
+import { getProviderConfig } from "@/lib/providers";
 
 interface SidebarProps {
   chats: Chat[];
@@ -23,19 +23,13 @@ interface SidebarProps {
   onNewChat: () => void;
   onSelectChat: (id: string) => void;
   onDeleteChat: (id: string) => void;
-  onToggleBrowser: () => void;
+  onTogglePanel: (panel: PanelId) => void;
   onOpenSettings: () => void;
-  showBrowser: boolean;
+  visiblePanels: PanelId[];
   collapsed: boolean;
   onToggleCollapse: () => void;
   provider: Provider;
 }
-
-const PROVIDER_CONFIG = {
-  claude: { icon: Brain, color: "text-amber-400", bg: "bg-amber-500/10", label: "Claude" },
-  ollama: { icon: Server, color: "text-emerald-400", bg: "bg-emerald-500/10", label: "Ollama" },
-  "openai-compatible": { icon: Blocks, color: "text-blue-400", bg: "bg-blue-500/10", label: "Custom" },
-};
 
 export default function Sidebar({
   chats,
@@ -43,9 +37,9 @@ export default function Sidebar({
   onNewChat,
   onSelectChat,
   onDeleteChat,
-  onToggleBrowser,
+  onTogglePanel,
   onOpenSettings,
-  showBrowser,
+  visiblePanels,
   collapsed,
   onToggleCollapse,
   provider,
@@ -57,8 +51,7 @@ export default function Sidebar({
     ? chats.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
     : chats;
 
-  const providerInfo = PROVIDER_CONFIG[provider];
-  const ProviderIcon = providerInfo.icon;
+  const providerInfo = getProviderConfig(provider);
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -73,11 +66,17 @@ export default function Sidebar({
     return `${diffDay}d`;
   };
 
+  const panels: { id: PanelId; icon: typeof Globe; label: string; activeColor: string }[] = [
+    { id: "browser", icon: Globe, label: "Browser", activeColor: "text-cyan-400 bg-cyan-500/10" },
+    { id: "editor", icon: Code2, label: "Editor", activeColor: "text-violet-400 bg-violet-500/10" },
+    { id: "terminal", icon: Terminal, label: "Terminal", activeColor: "text-emerald-400 bg-emerald-500/10" },
+  ];
+
   return (
     <div
       className={`${
         collapsed ? "w-[52px]" : "w-[260px]"
-      } bg-sidebar border-r border-border flex flex-col transition-all duration-200 ease-out`}
+      } bg-sidebar border-r border-border flex flex-col transition-all duration-200 ease-out flex-shrink-0`}
     >
       {/* Header */}
       <div className="p-2.5 flex items-center justify-between h-[52px]">
@@ -170,24 +169,33 @@ export default function Sidebar({
         ))}
       </div>
 
-      {/* Bottom */}
+      {/* Panels & Settings */}
       <div className="p-2 border-t border-border space-y-0.5">
         {/* Provider badge */}
         <div
-          className={`${collapsed ? "justify-center" : ""} w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs ${providerInfo.bg} ${providerInfo.color}`}
+          className={`${collapsed ? "justify-center" : ""} w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs ${providerInfo.bgColor} ${providerInfo.color}`}
         >
-          <ProviderIcon className="w-3.5 h-3.5 flex-shrink-0" />
-          {!collapsed && <span className="font-medium">{providerInfo.label} Active</span>}
+          <div className="w-2 h-2 rounded-full bg-current flex-shrink-0" />
+          {!collapsed && <span className="font-medium truncate">{providerInfo.name}</span>}
         </div>
-        <button
-          onClick={onToggleBrowser}
-          className={`${collapsed ? "justify-center" : ""} w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-colors ${
-            showBrowser ? "bg-cyan-500/10 text-cyan-400" : "text-muted-foreground hover:bg-sidebar-hover hover:text-foreground"
-          }`}
-        >
-          <Globe className="w-3.5 h-3.5 flex-shrink-0" />
-          {!collapsed && "Browser"}
-        </button>
+
+        {/* Panel toggles */}
+        {panels.map((panel) => {
+          const isActive = visiblePanels.includes(panel.id);
+          return (
+            <button
+              key={panel.id}
+              onClick={() => onTogglePanel(panel.id)}
+              className={`${collapsed ? "justify-center" : ""} w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-colors ${
+                isActive ? panel.activeColor : "text-muted-foreground hover:bg-sidebar-hover hover:text-foreground"
+              }`}
+            >
+              <panel.icon className="w-3.5 h-3.5 flex-shrink-0" />
+              {!collapsed && panel.label}
+            </button>
+          );
+        })}
+
         <button
           onClick={onOpenSettings}
           className={`${collapsed ? "justify-center" : ""} w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-sidebar-hover hover:text-foreground transition-colors`}

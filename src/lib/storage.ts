@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 const CHATS_KEY = "nexus_chats";
 const MESSAGES_KEY = "nexus_messages";
+const PREFIX = "nexus_";
 
 function getChats(): Chat[] {
   if (typeof window === "undefined") return [];
@@ -22,6 +23,15 @@ function getMessages(): (Message & { chat_id: string })[] {
 
 function saveMessages(messages: (Message & { chat_id: string })[]) {
   localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+}
+
+function get(key: string, fallback: string): string {
+  if (typeof window === "undefined") return fallback;
+  return localStorage.getItem(PREFIX + key) || fallback;
+}
+
+function set(key: string, value: string) {
+  localStorage.setItem(PREFIX + key, value);
 }
 
 export const storage = {
@@ -84,51 +94,31 @@ export const storage = {
     saveMessages(messages);
   },
 
-  getApiKey(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("nexus_api_key") || "";
-  },
-  setApiKey(key: string) {
-    localStorage.setItem("nexus_api_key", key);
-  },
-
-  getModel(): string {
-    if (typeof window === "undefined") return "claude-sonnet-4-20250514";
-    return localStorage.getItem("nexus_model") || "claude-sonnet-4-20250514";
-  },
-  setModel(model: string) {
-    localStorage.setItem("nexus_model", model);
-  },
-
+  // Provider settings
   getProvider(): Provider {
-    if (typeof window === "undefined") return "claude";
-    return (localStorage.getItem("nexus_provider") as Provider) || "claude";
+    return get("provider", "claude") as Provider;
   },
-  setProvider(provider: Provider) {
-    localStorage.setItem("nexus_provider", provider);
-  },
+  setProvider(v: Provider) { set("provider", v); },
 
-  getOllamaEndpoint(): string {
-    if (typeof window === "undefined") return "http://localhost:11434";
-    return localStorage.getItem("nexus_ollama_endpoint") || "http://localhost:11434";
-  },
-  setOllamaEndpoint(endpoint: string) {
-    localStorage.setItem("nexus_ollama_endpoint", endpoint);
-  },
+  getApiKey(): string { return get("api_key", ""); },
+  setApiKey(v: string) { set("api_key", v); },
 
-  getOpenAIEndpoint(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("nexus_openai_endpoint") || "";
-  },
-  setOpenAIEndpoint(endpoint: string) {
-    localStorage.setItem("nexus_openai_endpoint", endpoint);
-  },
+  getModel(): string { return get("model", "claude-sonnet-4-20250514"); },
+  setModel(v: string) { set("model", v); },
 
-  getOpenAIApiKey(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("nexus_openai_api_key") || "";
-  },
-  setOpenAIApiKey(key: string) {
-    localStorage.setItem("nexus_openai_api_key", key);
-  },
+  getOllamaEndpoint(): string { return get("ollama_endpoint", "http://localhost:11434"); },
+  setOllamaEndpoint(v: string) { set("ollama_endpoint", v); },
+
+  getCustomEndpoint(): string { return get("custom_endpoint", ""); },
+  setCustomEndpoint(v: string) { set("custom_endpoint", v); },
+
+  getCustomApiKey(): string { return get("custom_api_key", ""); },
+  setCustomApiKey(v: string) { set("custom_api_key", v); },
+
+  // Editor content
+  getEditorContent(): string { return get("editor_content", "// Welcome to NexusAI Editor\n// Start typing or paste code here\n\nfunction hello() {\n  console.log('Hello, NexusAI!');\n}\n"); },
+  setEditorContent(v: string) { set("editor_content", v); },
+
+  getEditorLanguage(): string { return get("editor_language", "typescript"); },
+  setEditorLanguage(v: string) { set("editor_language", v); },
 };

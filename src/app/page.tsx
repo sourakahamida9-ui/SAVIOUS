@@ -79,19 +79,41 @@ const PROVIDERS = [
     name: "Claude",
     models: ["Sonnet 4", "Opus 4", "Haiku 3.5"],
     color: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    icon: "provider-claude",
+  },
+  {
+    name: "OpenAI",
+    models: ["GPT-4o", "GPT-4o Mini", "o1"],
+    color: "bg-green-500/10 text-green-400 border-green-500/20",
+  },
+  {
+    name: "Gemini",
+    models: ["2.0 Flash", "2.5 Pro"],
+    color: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  },
+  {
+    name: "Groq",
+    models: ["Llama 3.3 70B", "Mixtral"],
+    color: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+  },
+  {
+    name: "DeepSeek",
+    models: ["Chat", "R1 Reasoner"],
+    color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  },
+  {
+    name: "OpenRouter",
+    models: ["100+ models", "Any provider"],
+    color: "bg-purple-500/10 text-purple-400 border-purple-500/20",
   },
   {
     name: "Ollama",
-    models: ["Llama 3.3", "Mistral", "Gemma 2", "Phi-4", "Qwen"],
+    models: ["Llama 3.2", "Mistral", "Gemma 2", "Phi-4"],
     color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    icon: "provider-ollama",
   },
   {
-    name: "OpenAI-Compatible",
-    models: ["Any endpoint", "Custom models", "Local inference"],
-    color: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    icon: "",
+    name: "LM Studio",
+    models: ["Any local model"],
+    color: "bg-pink-500/10 text-pink-400 border-pink-500/20",
   },
 ];
 
@@ -346,24 +368,16 @@ export default function HomePage() {
             From cloud APIs to local inference — switch providers and models instantly
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {PROVIDERS.map((p) => (
             <div
               key={p.name}
-              className={`rounded-2xl border ${p.color} p-6 transition-all hover:scale-[1.02]`}
+              className={`rounded-2xl border ${p.color} p-5 transition-all hover:scale-[1.02]`}
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 rounded-xl ${p.icon} flex items-center justify-center text-white text-sm font-bold`}>
-                  {p.name[0]}
-                </div>
-                <div>
-                  <h3 className="font-semibold">{p.name}</h3>
-                  <p className="text-xs text-muted-foreground">{p.models.length} models</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
+              <h3 className="font-semibold text-sm mb-3">{p.name}</h3>
+              <div className="flex flex-wrap gap-1">
                 {p.models.map((m) => (
-                  <span key={m} className="px-2.5 py-1 rounded-lg bg-surface border border-border text-xs text-muted-foreground">
+                  <span key={m} className="px-2 py-0.5 rounded-md bg-surface border border-border text-[11px] text-muted-foreground">
                     {m}
                   </span>
                 ))}

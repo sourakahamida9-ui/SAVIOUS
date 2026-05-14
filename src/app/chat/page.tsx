@@ -3,25 +3,30 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import dynamic from "next/dynamic";
 import Sidebar from "@/components/Sidebar";
 import ChatArea from "@/components/ChatArea";
 import EmbeddedBrowser from "@/components/EmbeddedBrowser";
 import SettingsModal from "@/components/SettingsModal";
 import { storage } from "@/lib/storage";
-import type { Chat, Provider } from "@/types";
+import { getProviderConfig } from "@/lib/providers";
+import type { Chat, Provider, PanelId } from "@/types";
+
+const CodeEditor = dynamic(() => import("@/components/CodeEditor"), { ssr: false });
+const TerminalPanel = dynamic(() => import("@/components/TerminalPanel"), { ssr: false });
 
 export default function ChatPage() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  const [showBrowser, setShowBrowser] = useState(false);
+  const [visiblePanels, setVisiblePanels] = useState<PanelId[]>(["chat"]);
   const [showSettings, setShowSettings] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState("claude-sonnet-4-20250514");
   const [provider, setProvider] = useState<Provider>("claude");
   const [ollamaEndpoint, setOllamaEndpoint] = useState("http://localhost:11434");
-  const [openaiEndpoint, setOpenaiEndpoint] = useState("");
-  const [openaiApiKey, setOpenaiApiKey] = useState("");
+  const [customEndpoint, setCustomEndpoint] = useState("");
+  const [customApiKey, setCustomApiKey] = useState("");
   const [mounted, setMounted] = useState(false);
   const [input, setInput] = useState("");
 
@@ -34,11 +39,11 @@ export default function ChatPage() {
           model,
           provider,
           ollamaEndpoint,
-          openaiEndpoint,
-          openaiApiKey,
+          customEndpoint,
+          customApiKey,
         },
       }),
-    [apiKey, model, provider, ollamaEndpoint, openaiEndpoint, openaiApiKey]
+    [apiKey, model, provider, ollamaEndpoint, customEndpoint, customApiKey]
   );
 
   const {
@@ -90,8 +95,8 @@ export default function ChatPage() {
     setModel(storage.getModel());
     setProvider(storage.getProvider());
     setOllamaEndpoint(storage.getOllamaEndpoint());
-    setOpenaiEndpoint(storage.getOpenAIEndpoint());
-    setOpenaiApiKey(storage.getOpenAIApiKey());
+    setCustomEndpoint(storage.getCustomEndpoint());
+    setCustomApiKey(storage.getCustomApiKey());
     setChats(storage.loadChats());
   }, []);
 
@@ -131,14 +136,25 @@ export default function ChatPage() {
     [activeChatId, setMessages]
   );
 
+  const handleTogglePanel = useCallback((panelId: PanelId) => {
+    setVisiblePanels((prev) => {
+      if (prev.includes(panelId)) {
+        const next = prev.filter((p) => p !== panelId);
+        return next.length === 0 ? ["chat"] : next;
+      }
+      return [...prev, panelId];
+    });
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
+    const config = getProviderConfig(provider);
     const isConfigured =
-      provider === "claude" ? !!apiKey :
-      provider === "ollama" ? !!ollamaEndpoint :
-      !!openaiEndpoint;
+      config.requiresApiKey ? !!apiKey :
+      (provider === "ollama" || provider === "lmstudio" || provider === "custom") ? !!(provider === "ollama" ? ollamaEndpoint : customEndpoint) :
+      true;
 
     if (!isConfigured) return;
 
@@ -162,21 +178,21 @@ export default function ChatPage() {
     model: string;
     provider: Provider;
     ollamaEndpoint: string;
-    openaiEndpoint: string;
-    openaiApiKey: string;
+    customEndpoint: string;
+    customApiKey: string;
   }) => {
     setApiKey(settings.apiKey);
     setModel(settings.model);
     setProvider(settings.provider);
     setOllamaEndpoint(settings.ollamaEndpoint);
-    setOpenaiEndpoint(settings.openaiEndpoint);
-    setOpenaiApiKey(settings.openaiApiKey);
+    setCustomEndpoint(settings.customEndpoint);
+    setCustomApiKey(settings.customApiKey);
     storage.setApiKey(settings.apiKey);
     storage.setModel(settings.model);
     storage.setProvider(settings.provider);
     storage.setOllamaEndpoint(settings.ollamaEndpoint);
-    storage.setOpenAIEndpoint(settings.openaiEndpoint);
-    storage.setOpenAIApiKey(settings.openaiApiKey);
+    storage.setCustomEndpoint(settings.customEndpoint);
+    storage.setCustomApiKey(settings.customApiKey);
   };
 
   if (!mounted) {
@@ -184,16 +200,17 @@ export default function ChatPage() {
       <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-muted-foreground">Loading...</span>
+          <span className="text-sm text-muted-foreground">Loading NexusAI...</span>
         </div>
       </div>
     );
   }
 
+  const config = getProviderConfig(provider);
   const isConfigured =
-    provider === "claude" ? !!apiKey :
-    provider === "ollama" ? !!ollamaEndpoint :
-    !!openaiEndpoint;
+    config.requiresApiKey ? !!apiKey :
+    (provider === "ollama" || provider === "lmstudio" || provider === "custom") ? !!(provider === "ollama" ? ollamaEndpoint : customEndpoint) :
+    true;
 
   const displayMessages = messages.map((m) => ({
     id: m.id,
@@ -207,6 +224,12 @@ export default function ChatPage() {
         .join("") || "",
   }));
 
+  const showBrowser = visiblePanels.includes("browser");
+  const showEditor = visiblePanels.includes("editor");
+  const showTerminal = visiblePanels.includes("terminal");
+  const rightPanelCount = (showBrowser ? 1 : 0) + (showEditor ? 1 : 0);
+  const hasRightPanel = rightPanelCount > 0;
+
   return (
     <div className="h-screen flex overflow-hidden bg-background">
       <Sidebar
@@ -215,34 +238,58 @@ export default function ChatPage() {
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
         onDeleteChat={handleDeleteChat}
-        onToggleBrowser={() => setShowBrowser(!showBrowser)}
+        onTogglePanel={handleTogglePanel}
         onOpenSettings={() => setShowSettings(true)}
-        showBrowser={showBrowser}
+        visiblePanels={visiblePanels}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         provider={provider}
       />
 
-      <div className="flex-1 flex min-w-0">
-        <div
-          className={`flex-1 flex flex-col min-w-0 ${showBrowser ? "w-1/2" : ""}`}
-        >
-          <ChatArea
-            messages={displayMessages}
-            input={input}
-            onInputChange={setInput}
-            onSubmit={handleSubmit}
-            isLoading={isLoading}
-            hasApiKey={isConfigured}
-            onOpenSettings={() => setShowSettings(true)}
-            provider={provider}
-            model={model}
-          />
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top row: Chat + Right panels */}
+        <div className={`flex-1 flex min-h-0 ${showTerminal ? "h-[60%]" : "h-full"}`}>
+          {/* Chat panel — always visible */}
+          <div className={`flex flex-col min-w-0 ${hasRightPanel ? "w-1/2 border-r border-border" : "flex-1"}`}>
+            <ChatArea
+              messages={displayMessages}
+              input={input}
+              onInputChange={setInput}
+              onSubmit={handleSubmit}
+              isLoading={isLoading}
+              hasApiKey={isConfigured}
+              onOpenSettings={() => setShowSettings(true)}
+              provider={provider}
+              model={model}
+            />
+          </div>
+
+          {/* Right panels */}
+          {hasRightPanel && (
+            <div className={`flex flex-col min-w-0 ${hasRightPanel ? "w-1/2" : ""}`}>
+              {showBrowser && showEditor ? (
+                <>
+                  <div className="h-1/2 border-b border-border">
+                    <EmbeddedBrowser onClose={() => handleTogglePanel("browser")} />
+                  </div>
+                  <div className="h-1/2">
+                    <CodeEditor onClose={() => handleTogglePanel("editor")} />
+                  </div>
+                </>
+              ) : showBrowser ? (
+                <EmbeddedBrowser onClose={() => handleTogglePanel("browser")} />
+              ) : showEditor ? (
+                <CodeEditor onClose={() => handleTogglePanel("editor")} />
+              ) : null}
+            </div>
+          )}
         </div>
 
-        {showBrowser && (
-          <div className="w-1/2 min-w-[400px]">
-            <EmbeddedBrowser onClose={() => setShowBrowser(false)} />
+        {/* Bottom: Terminal */}
+        {showTerminal && (
+          <div className="h-[40%] min-h-[150px]">
+            <TerminalPanel onClose={() => handleTogglePanel("terminal")} />
           </div>
         )}
       </div>
@@ -254,8 +301,8 @@ export default function ChatPage() {
         model={model}
         provider={provider}
         ollamaEndpoint={ollamaEndpoint}
-        openaiEndpoint={openaiEndpoint}
-        openaiApiKey={openaiApiKey}
+        customEndpoint={customEndpoint}
+        customApiKey={customApiKey}
         onSave={handleSaveSettings}
       />
     </div>

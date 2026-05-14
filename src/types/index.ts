@@ -13,31 +13,50 @@ export interface Chat {
   user_id: string;
 }
 
-export type Provider = "claude" | "ollama" | "openai-compatible";
+export type Provider =
+  | "claude"
+  | "openai"
+  | "gemini"
+  | "groq"
+  | "deepseek"
+  | "openrouter"
+  | "ollama"
+  | "lmstudio"
+  | "custom";
 
 export interface ProviderConfig {
   id: Provider;
   name: string;
   description: string;
   requiresApiKey: boolean;
+  keyPlaceholder?: string;
+  keyLink?: string;
+  keyLinkLabel?: string;
   defaultEndpoint?: string;
+  endpointEditable?: boolean;
   models: ModelOption[];
   color: string;
-  badge: string;
+  bgColor: string;
+  borderColor: string;
+  activeBg: string;
 }
 
 export interface ModelOption {
   id: string;
   name: string;
   desc: string;
-  provider: Provider;
 }
 
-export interface UserSettings {
-  api_key: string;
-  model: string;
-  provider: Provider;
-  ollama_endpoint: string;
-  openai_endpoint: string;
-  openai_api_key: string;
+export type PanelId = "chat" | "browser" | "editor" | "terminal";
+
+export interface PanelConfig {
+  id: PanelId;
+  visible: boolean;
+}
+
+export interface AgentStep {
+  id: string;
+  text: string;
+  status: "pending" | "running" | "done" | "error";
+  timestamp: string;
 }

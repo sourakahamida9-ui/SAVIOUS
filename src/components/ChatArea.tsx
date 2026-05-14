@@ -80,8 +80,14 @@ const SUGGESTIONS = [
 
 const PROVIDER_LABELS: Record<Provider, string> = {
   claude: "Claude",
+  openai: "OpenAI",
+  gemini: "Gemini",
+  groq: "Groq",
+  deepseek: "DeepSeek",
+  openrouter: "OpenRouter",
   ollama: "Ollama",
-  "openai-compatible": "Custom",
+  lmstudio: "LM Studio",
+  custom: "Custom",
 };
 
 export default function ChatArea({
